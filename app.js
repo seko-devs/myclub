@@ -21,5 +21,20 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-;
+
+async function getSinglePlayer() {
+  const docRef = doc(db, "players", "EteZoTtd40FPI0aYjEKw"); // Assuming a document with ID "SF" exists
+  try {
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      console.log("Document data:", docSnap.data());
+    } else {
+      console.log("No such document!");
+    }
+  } catch (e) {
+    console.error("Error getting document:", e);
+  }
+}
+
 

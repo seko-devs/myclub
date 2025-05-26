@@ -5,27 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Firestore with GitHub Pages</title>
     <script type="module" src="app.js"></script>
-    <script>
-        function addMessage(){
-            
-            alert("yeah");
-        }
-    </script>
-    
-    <!-- Firebase App (core) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
-
-    <!-- Firebase Auth -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js"></script>
-
-    <!-- Firestore -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"></script>
+    <script type="text/javascript" src="methods.js"></script>
+      
 
 </head>
 <body>
     <h1>Messages</h1>
     <ul id="messages"></ul>
     <input type="text" id="messageInput" placeholder="Enter a message">
-    <button onclick="addMessage()">Send</button>
+    <button onclick="addMessage();">Send</button>
 </body>
 </html>
