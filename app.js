@@ -1,7 +1,7 @@
 
 
   // Init Auth and Firestore
-    const auth = firebase.auth();
+    const auth = auth();
     //const db = firebase.firestore();
 
 // Import the functions you need from the SDKs you need
