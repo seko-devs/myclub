@@ -20,15 +20,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); // Initialize auth using the modular SDK
 
-// UI elements
-const getSinglePlayerButton = document.getElementById('getSinglePlayerButton');
-const sendMessageButton = document.getElementById('sendMessageButton');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const signUpButton = document.getElementById('signup-button');
-const signInButton = document.getElementById('signin-button');
-const signOutButton = document.getElementById('signout-button');
-const userStatusParagraph = document.getElementById('user-status');
 
 const handleSignUp = async () => {
     const email = emailInput ? emailInput.value : '';
@@ -171,6 +162,16 @@ function setupRealtimeMessagesListener() {
 document.addEventListener('DOMContentLoaded', () => {    
 
     // Ensure buttons exist before attaching listeners
+    // UI elements
+    const getSinglePlayerButton = document.getElementById('getSinglePlayerButton');
+    const sendMessageButton = document.getElementById('sendMessageButton');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const signUpButton = document.getElementById('signup-button');
+    const signInButton = document.getElementById('signin-button');
+    const signOutButton = document.getElementById('signout-button');
+    const userStatusParagraph = document.getElementById('user-status');
+
     
     // Sign Up button
     if (signUpButton) {
