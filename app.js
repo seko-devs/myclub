@@ -172,11 +172,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Ensure buttons exist before attaching listeners
     
+    // Sign Up button
     if (signUpButton) {
-        signUpButton.addEventListener('click', signUpButton);
+        signUpButton.addEventListener('click', handleSignUp); 
     } else {
-        console.warn("Element with ID 'signUpButton' not found.");
+        console.warn("Element with ID 'signup-button' not found. Sign up functionality may be unavailable.");
     }
+
+    // Sign In button
+    if (signInButton) {
+        signInButton.addEventListener('click', handleSignIn); 
+    } else {
+        console.warn("Element with ID 'signin-button' not found. Sign in functionality may be unavailable.");
+    }
+
+    // Sign Out button
+    if (signOutButton) {
+        signOutButton.addEventListener('click', handleSignOut); 
+    } else {
+        console.warn("Element with ID 'signout-button' not found. Sign out functionality may be unavailable.");
+    }   
 
     if (getSinglePlayerButton) {
         getSinglePlayerButton.addEventListener('click', getSinglePlayer);
@@ -189,6 +204,29 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.warn("Element with ID 'sendMessageButton' not found.");
     }
+
+    // --- Authentication State Listener ---
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // User is signed in
+            if (userStatusParagraph) {
+                userStatusParagraph.textContent = `User is signed in: ${user.email} (UID: ${user.uid})`;
+            }
+            if (signUpButton) signUpButton.style.display = 'none';
+            if (signInButton) signInButton.style.display = 'none';
+            if (signOutButton) signOutButton.style.display = 'inline-block';
+            if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+        } else {
+            // User is signed out
+            if (userStatusParagraph) {
+                userStatusParagraph.textContent = 'User is signed out.';
+            }
+            if (signUpButton) signUpButton.style.display = 'inline-block';
+            if (signInButton) signInButton.style.display = 'inline-block';
+            if (signOutButton) signOutButton.style.display = 'none';
+        }
+    });
 
     // Initialize real-time message display
     setupRealtimeMessagesListener();
