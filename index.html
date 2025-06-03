@@ -11,10 +11,22 @@
 
 </head>
 <body>
-    <h1>Messages</h1>
-    <ul id="messages"></ul>
-    <input type="text" id="messageInput" placeholder="Enter a message">
-    <button id="sendMessageButton">Send</button>
-    <button id="getSinglePlayerButton">getSingle Player</button>
+    <div id="auth-ui">
+        <h2>Sign Up / Sign In</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+    <button id="signup-button">Sign Up</button>
+        <button id="signin-button">Sign In</button>
+        <!-- <button id="google-signin-button">Sign In with Google</button>-->
+        <button id="signout-button" style="display: none;">Sign Out</button> 
+        <p id="user-status"></p>
+    </div>    
+    <div style="margin-top: 10px;">
+        <h1>Messages</h1>
+        <ul id="messages"></ul>
+        <input type="text" id="messageInput" placeholder="Enter a message">
+        <button id="sendMessageButton">Send</button>
+        <button id="getSinglePlayerButton">getSingle Player</button>
+    </div>
 </body>
 </html>

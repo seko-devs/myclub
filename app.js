@@ -3,7 +3,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth'; // Import getAuth for authentication
+import { getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged } from 'firebase/auth'; // Import getAuth for authentication
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -19,6 +19,82 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); // Initialize auth using the modular SDK
+
+// UI elements
+const getSinglePlayerButton = document.getElementById('getSinglePlayerButton');
+const sendMessageButton = document.getElementById('sendMessageButton');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const signUpButton = document.getElementById('signup-button');
+const signInButton = document.getElementById('signin-button');
+const signOutButton = document.getElementById('signout-button');
+const userStatusParagraph = document.getElementById('user-status');
+
+const handleSignUp = async () => {
+    const email = emailInput ? emailInput.value : '';
+    const password = passwordInput ? passwordInput.value : '';
+
+    if (!email || !password) {
+        alert('Please enter both email and password.');
+        return;
+    }
+
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log('User signed up:', user);
+        alert('Signed up successfully!');
+    } catch (error) {
+        const errorMessage = error.message;
+        console.error('Sign up error:', error.code, errorMessage);
+        alert(`Sign up error: ${errorMessage}`);
+        if (error.code === 'auth/email-already-in-use') {
+            alert('This email is already in use. Please sign in or use a different email.');
+        } else if (error.code === 'auth/weak-password') {
+            alert('Password should be at least 6 characters.');
+        }
+    }
+};
+
+// Function to handle Sign In
+const handleSignIn = async () => {
+    const email = emailInput ? emailInput.value : '';
+    const password = passwordInput ? passwordInput.value : '';
+
+    if (!email || !password) {
+        alert('Please enter both email and password.');
+        return;
+    }
+
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log('User signed in:', user);
+        alert('Signed in successfully!');
+    } catch (error) {
+        const errorMessage = error.message;
+        console.error('Sign in error:', error.code, errorMessage);
+        alert(`Sign in error: ${errorMessage}`);
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+             alert('Invalid email or password.');
+        } else if (error.code === 'auth/too-many-requests') {
+            alert('Too many failed login attempts. Please try again later.');
+        }
+    }
+};
+
+// Function to handle Sign Out
+const handleSignOut = async () => {
+    try {
+        await signOut(auth);
+        console.log('User signed out.');
+        alert('Signed out successfully!');
+    } catch (error) {
+        console.error('Sign out error:', error);
+        alert(`Sign out error: ${error.message}`);
+    }
+};
+
 
 // --- Function to get single player ---
 async function getSinglePlayer() {
@@ -92,11 +168,16 @@ function setupRealtimeMessagesListener() {
 
 
 // --- Attach event listeners when the DOM is fully loaded ---
-document.addEventListener('DOMContentLoaded', () => {
-    const getSinglePlayerButton = document.getElementById('getSinglePlayerButton');
-    const sendMessageButton = document.getElementById('sendMessageButton');
+document.addEventListener('DOMContentLoaded', () => {    
 
     // Ensure buttons exist before attaching listeners
+    
+    if (signUpButton) {
+        signUpButton.addEventListener('click', signUpButton);
+    } else {
+        console.warn("Element with ID 'signUpButton' not found.");
+    }
+
     if (getSinglePlayerButton) {
         getSinglePlayerButton.addEventListener('click', getSinglePlayer);
     } else {
