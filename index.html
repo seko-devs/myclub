@@ -13,8 +13,8 @@
 <body>
     <div id="auth-ui">
         <h2>Sign Up / Sign In</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
+        <input type="email" id="email" placeholder="Email" autocomplete="email">
+        <input type="password" id="password" placeholder="Password" autocomplete="current-password">
         <!-- Sign - up niet toelaten 
         <button id="signup-button">Sign Up</button> -->
         <button id="signin-button">Sign In</button>
@@ -23,10 +23,8 @@
         <p id="user-status"></p>
     </div>    
     <div style="margin-top: 10px;">
-        <h1>Messages</h1>
-        <ul id="messages"></ul>
-        <input type="text" id="messageInput" placeholder="Enter a message">
-        <button id="sendMessageButton">Send</button>
+        <h1>Players</h1>
+        <ul id="Players"></ul>        
         <button id="getSinglePlayerButton">getSingle Player</button>
     </div>
 </body>
