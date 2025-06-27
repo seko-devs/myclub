@@ -30,10 +30,11 @@ const handleSignUp = async (email, password) => { // <--- Added email, password 
     }
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        console.log('User signed up:', user);
-        alert('Signed up successfully!');
+        // signup niet toelaten
+        // const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // const user = userCredential.user;
+        // console.log('User signed up:', user);
+        // alert('Signed up successfully!');
     } catch (error) {
         const errorMessage = error.message;
         console.error('Sign up error:', error.code, errorMessage);
