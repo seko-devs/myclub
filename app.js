@@ -3,7 +3,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged } from 'firebase/auth'; // Import getAuth for authentication
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -18,13 +18,12 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app); // Initialize auth using the modular SDK
+const auth = getAuth(app);
 
+// --- Authentication Functions (Now accept email/password as arguments) ---
 
-const handleSignUp = async () => {
-    const email = emailInput ? emailInput.value : '';
-    const password = passwordInput ? passwordInput.value : '';
-
+// Function to handle Sign Up
+const handleSignUp = async (email, password) => { // <--- Added email, password parameters
     if (!email || !password) {
         alert('Please enter both email and password.');
         return;
@@ -48,10 +47,7 @@ const handleSignUp = async () => {
 };
 
 // Function to handle Sign In
-const handleSignIn = async () => {
-    const email = emailInput ? emailInput.value : '';
-    const password = passwordInput ? passwordInput.value : '';
-
+const handleSignIn = async (email, password) => { // <--- Added email, password parameters
     if (!email || !password) {
         alert('Please enter both email and password.');
         return;
@@ -89,13 +85,13 @@ const handleSignOut = async () => {
 
 // --- Function to get single player ---
 async function getSinglePlayer() {
-  const docRef = doc(db, "players", "EteZoTtd40FPI0aYjEKw"); // Assuming a document with ID "EteZoTtd40FPI0aYjEKw" exists
+  const docRef = doc(db, "players", "EteZoTtd40FPI0aYjEKw");
   try {
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
       console.log("Document data:", docSnap.data());
-      alert("Player data: " + JSON.stringify(docSnap.data(), null, 2)); // Use alert for visible feedback
+      alert("Player data: " + JSON.stringify(docSnap.data(), null, 2));
     } else {
       console.log("No such document!");
       alert("No such player document!");
@@ -106,10 +102,9 @@ async function getSinglePlayer() {
   }
 }
 
-// --- Function to add message (moved from methods.js) ---
-async function addMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const messageText = messageInput.value.trim();
+// --- Function to add message (now accepts messageInput directly) ---
+async function addMessage(messageInput) { // <--- Accepts messageInput as argument
+    const messageText = messageInput ? messageInput.value.trim() : '';
 
     if (messageText === '') {
         alert('Please enter a message!');
@@ -120,23 +115,24 @@ async function addMessage() {
         const messagesCollectionRef = collection(db, "messages");
         await addDoc(messagesCollectionRef, {
             text: messageText,
-            timestamp: new Date(), // Add a timestamp for ordering
+            timestamp: new Date(),
         });
         console.log("Message added successfully!");
-        messageInput.value = ''; // Clear input after sending
+        if (messageInput) messageInput.value = '';
     } catch (e) {
         console.error("Error adding message: ", e);
         alert("Error sending message: " + e.message);
     }
 }
 
-// --- Function to display messages in real-time ---
+// --- Function to display messages in real-time (no change needed here) ---
 function setupRealtimeMessagesListener() {
     const messagesList = document.getElementById('messages');
-    // Order messages by timestamp for proper display
+    if (!messagesList) {
+        console.warn("Element with ID 'messages' not found. Real-time messages will not be displayed.");
+        return;
+    }
     const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
-
-    // Clear existing messages when setting up listener to prevent duplicates on refresh
     messagesList.innerHTML = '';
 
     onSnapshot(q, (snapshot) => {
@@ -144,12 +140,10 @@ function setupRealtimeMessagesListener() {
             if (change.type === "added") {
                 const messageData = change.doc.data();
                 const li = document.createElement('li');
-                // Format timestamp nicely
                 const time = messageData.timestamp ? new Date(messageData.timestamp.toMillis()).toLocaleString() : 'N/A';
                 li.textContent = `${messageData.text} (${time})`;
                 messagesList.appendChild(li);
             }
-            // You can also handle 'modified' and 'removed' changes here if needed
         });
     }, (error) => {
         console.error("Error listening to messages: ", error);
@@ -158,13 +152,13 @@ function setupRealtimeMessagesListener() {
 }
 
 
-// --- Attach event listeners when the DOM is fully loaded ---
-document.addEventListener('DOMContentLoaded', () => {    
-
-    // Ensure buttons exist before attaching listeners
-    // UI elements
+// --- Attach event listeners and run UI logic when the DOM is fully loaded ---
+document.addEventListener('DOMContentLoaded', () => {
+    // UI elements MUST be queried here, inside DOMContentLoaded
     const getSinglePlayerButton = document.getElementById('getSinglePlayerButton');
     const sendMessageButton = document.getElementById('sendMessageButton');
+    const messageInput = document.getElementById('messageInput'); // Get messageInput here too!
+
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const signUpButton = document.getElementById('signup-button');
@@ -172,27 +166,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const signOutButton = document.getElementById('signout-button');
     const userStatusParagraph = document.getElementById('user-status');
 
-    
-    // Sign Up button
-    if (signUpButton) {
-        signUpButton.addEventListener('click', handleSignUp); 
+
+    // Assign event listeners
+    if (signUpButton && emailInput && passwordInput) {
+        signUpButton.addEventListener('click', () => handleSignUp(emailInput.value, passwordInput.value));
     } else {
-        console.warn("Element with ID 'signup-button' not found. Sign up functionality may be unavailable.");
+        console.warn("Element with ID 'signup-button' or associated inputs not found. Sign up functionality may be unavailable.");
     }
 
-    // Sign In button
-    if (signInButton) {
-        signInButton.addEventListener('click', handleSignIn); 
+    if (signInButton && emailInput && passwordInput) {
+        signInButton.addEventListener('click', () => handleSignIn(emailInput.value, passwordInput.value));
     } else {
-        console.warn("Element with ID 'signin-button' not found. Sign in functionality may be unavailable.");
+        console.warn("Element with ID 'signin-button' or associated inputs not found. Sign in functionality may be unavailable.");
     }
 
-    // Sign Out button
     if (signOutButton) {
-        signOutButton.addEventListener('click', handleSignOut); 
+        signOutButton.addEventListener('click', handleSignOut);
     } else {
         console.warn("Element with ID 'signout-button' not found. Sign out functionality may be unavailable.");
-    }   
+    }
 
     if (getSinglePlayerButton) {
         getSinglePlayerButton.addEventListener('click', getSinglePlayer);
@@ -200,11 +192,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("Element with ID 'getSinglePlayerButton' not found.");
     }
 
-    if (sendMessageButton) {
-        sendMessageButton.addEventListener('click', addMessage);
+    if (sendMessageButton && messageInput) { // Ensure messageInput is also found
+        sendMessageButton.addEventListener('click', () => addMessage(messageInput)); // Pass the input element
     } else {
-        console.warn("Element with ID 'sendMessageButton' not found.");
+        console.warn("Element with ID 'sendMessageButton' or 'messageInput' not found.");
     }
+
 
     // --- Authentication State Listener ---
     onAuthStateChanged(auth, (user) => {
