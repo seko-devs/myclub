@@ -1,9 +1,16 @@
 // app.js (This is the main entry point for your Webpack bundle)
 
 // Import the functions you need from the SDKs you need
+// FIrebase App and Firestore
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+
+//bootstrap
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Import the Bootstrap JavaScript bundle (which includes Popper.js)
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -146,8 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // User is signed in
             if (userStatusParagraph) {
                 userStatusParagraph.textContent = `User is signed in: ${user.email} (UID: ${user.uid})`;
+                window.location.href = "home.html";
             }
-            //if (signUpButton) signUpButton.style.display = 'none';
+            if (signUpButton) signUpButton.style.display = 'none';
             if (signInButton) signInButton.style.display = 'none';
             if (signOutButton) signOutButton.style.display = 'inline-block';
             if (emailInput) emailInput.value = '';

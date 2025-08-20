@@ -19,6 +19,14 @@ module.exports = {
             presets: ['@babel/preset-env']
           }
         }
+      },
+      // New rule for CSS files
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader'
+        ]
       }
     ]
   },
