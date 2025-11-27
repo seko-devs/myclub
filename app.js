@@ -4,7 +4,7 @@
 // FIrebase App and Firestore
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, inMemoryPersistence } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from 'firebase/auth';
 
 //bootstrap
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -62,8 +62,8 @@ const handleSignIn = async (email, password) => { // <--- Added email, password 
     // inMemoryPersistence: Clears the session as soon as the window is closed.
     //                      This is the closest match to 'sign in every time.'
     try {
-        await setPersistence(auth, inMemoryPersistence);
-        console.log("Firebase persistence set to NONE.");
+        await setPersistence(auth, browserSessionPersistence);
+        console.log("Firebase persistence set to SESSION.");
 
     } catch (error) {
         // Handle persistence errors (rare)
@@ -80,7 +80,7 @@ const handleSignIn = async (email, password) => { // <--- Added email, password 
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         console.log('User signed in:', user);
-        alert('Signed in successfully!');
+        alert('Signed in successfully!');        
         window.location.href = "home.html";
     } catch (error) {
         const errorMessage = error.message;
@@ -168,6 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Authentication State Listener ---
     onAuthStateChanged(auth, (user) => {
+        
+        const currentPath = window.location.pathname;
+        const isLoginPage = currentPath.endsWith('index.html') || currentPath === '/';              
+
         if (user) {
             // User is signed in
             if (userStatusParagraph) {
@@ -179,6 +183,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (emailInput) emailInput.value = '';
             if (passwordInput) passwordInput.value = '';
         } else {
+            
+            if (!isLoginPage) {
+                // Redirect signed-out users AWAY from the protected home page
+                console.log("User signed out. Redirecting to index.html");
+                window.location.href = 'index.html'; 
+            }
+            
             // User is signed out
             if (userStatusParagraph) {
                 userStatusParagraph.textContent = 'User is signed out.';
