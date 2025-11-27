@@ -4,7 +4,7 @@
 // FIrebase App and Firestore
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, inMemoryPersistence } from 'firebase/auth';
 
 //bootstrap
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -56,6 +56,21 @@ const handleSignUp = async (email, password) => { // <--- Added email, password 
 
 // Function to handle Sign In
 const handleSignIn = async (email, password) => { // <--- Added email, password parameters
+    
+    // Set Persistence to NONE 
+    //Serkan : If not set , it keeps user signed in even after closing the browser
+    // inMemoryPersistence: Clears the session as soon as the window is closed.
+    //                      This is the closest match to 'sign in every time.'
+    try {
+        await setPersistence(auth, inMemoryPersistence);
+        console.log("Firebase persistence set to NONE.");
+
+    } catch (error) {
+        // Handle persistence errors (rare)
+        console.error("Error setting persistence:", error.message);
+        return; 
+    }    
+    
     if (!email || !password) {
         alert('Please enter both email and password.');
         return;
@@ -66,6 +81,7 @@ const handleSignIn = async (email, password) => { // <--- Added email, password 
         const user = userCredential.user;
         console.log('User signed in:', user);
         alert('Signed in successfully!');
+        window.location.href = "home.html";
     } catch (error) {
         const errorMessage = error.message;
         console.error('Sign in error:', error.code, errorMessage);
@@ -131,31 +147,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (signInButton && emailInput && passwordInput) {
         signInButton.addEventListener('click', () => handleSignIn(emailInput.value, passwordInput.value));
-    } else {
-        console.warn("Element with ID 'signin-button' or associated inputs not found. Sign in functionality may be unavailable.");
-    }
+    } 
+    //else {
+      //  console.warn("Element with ID 'signin-button' or associated inputs not found. Sign in functionality may be unavailable.");
+    //}
 
     if (signOutButton) {
         signOutButton.addEventListener('click', handleSignOut);
-    } else {
-        console.warn("Element with ID 'signout-button' not found. Sign out functionality may be unavailable.");
-    }
+    } 
+    //else {
+      //  console.warn("Element with ID 'signout-button' not found. Sign out functionality may be unavailable.");
+    //}
 
     if (getSinglePlayerButton) {
         getSinglePlayerButton.addEventListener('click', getSinglePlayer);
-    } else {
-        console.warn("Element with ID 'getSinglePlayerButton' not found.");
-    }
+    } 
+    //else {
+      //  console.warn("Element with ID 'getSinglePlayerButton' not found.");
+    //}
 
     // --- Authentication State Listener ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
             // User is signed in
             if (userStatusParagraph) {
-                userStatusParagraph.textContent = `User is signed in: ${user.email} (UID: ${user.uid})`;
-                window.location.href = "home.html";
+                userStatusParagraph.textContent = `User is signed in: ${user.email} (UID: ${user.uid})`;                
             }
-            if (signUpButton) signUpButton.style.display = 'none';
+            //if (signUpButton) signUpButton.style.display = 'none';
             if (signInButton) signInButton.style.display = 'none';
             if (signOutButton) signOutButton.style.display = 'inline-block';
             if (emailInput) emailInput.value = '';
