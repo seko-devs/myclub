@@ -57,8 +57,8 @@ const handleSignUp = async (email, password) => { // <--- Added email, password 
 // Function to handle Sign In
 const handleSignIn = async (email, password) => { // <--- Added email, password parameters
     
-    // Set Persistence to NONE 
-    //Serkan : If not set , it keeps user signed in even after closing the browser
+    // Set Persistence to SESSION 
+    //Serkan : it keeps the user signed in until the browser (or tab) is closed.
     // inMemoryPersistence: Clears the session as soon as the window is closed.
     //                      This is the closest match to 'sign in every time.'
     try {
