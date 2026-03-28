@@ -9,6 +9,9 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 //bootstrap
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+//custom CSS (optional, if you have any)
+import './login.css';
+
 // Import the Bootstrap JavaScript bundle (which includes Popper.js)
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
