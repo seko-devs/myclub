@@ -20,13 +20,13 @@ import './navbar.js';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDJmOLs6nGaheZmr6qUbUpXN_ylzonF2G4",
-  authDomain: "myclub-fb.firebaseapp.com",
-  projectId: "myclub-fb",
-  storageBucket: "myclub-fb.firebasestorage.app",
-  messagingSenderId: "542512653051",
-  appId: "1:542512653051:web:7b8856c9a43d36000ec65e"
-};
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID
+  };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
