@@ -15,6 +15,9 @@ import './login.css';
 // Import the Bootstrap JavaScript bundle (which includes Popper.js)
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
+//navbar 
+import './navbar.js';
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDJmOLs6nGaheZmr6qUbUpXN_ylzonF2G4",
