@@ -1,0 +1,210 @@
+// app.js (This is the main entry point for your Webpack bundle)
+
+// Import the functions you need from the SDKs you need
+// FIrebase App and Firestore
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from 'firebase/auth';
+
+//bootstrap
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+//custom CSS (optional, if you have any)
+import './login.css';
+
+// Import the Bootstrap JavaScript bundle (which includes Popper.js)
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
+//navbar 
+import './navbar.js';
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID
+  };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// --- Authentication Functions (Now accept email/password as arguments) ---
+
+// Function to handle Sign Up
+const handleSignUp = async (email, password) => { // <--- Added email, password parameters
+    if (!email || !password) {
+        alert('Please enter both email and password.');
+        return;
+    }
+
+    try {
+        // signup niet toelaten
+        // const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // const user = userCredential.user;
+        // console.log('User signed up:', user);
+        // alert('Signed up successfully!');
+    } catch (error) {
+        const errorMessage = error.message;
+        console.error('Sign up error:', error.code, errorMessage);
+        alert(`Sign up error: ${errorMessage}`);
+        if (error.code === 'auth/email-already-in-use') {
+            alert('This email is already in use. Please sign in or use a different email.');
+        } else if (error.code === 'auth/weak-password') {
+            alert('Password should be at least 6 characters.');
+        }
+    }
+};
+
+// Function to handle Sign In
+const handleSignIn = async (email, password) => { // <--- Added email, password parameters
+    
+    // Set Persistence to SESSION 
+    //Serkan : it keeps the user signed in until the browser (or tab) is closed.
+    // inMemoryPersistence: Clears the session as soon as the window is closed.
+    //                      This is the closest match to 'sign in every time.'
+    try {
+        await setPersistence(auth, browserSessionPersistence);
+        console.log("Firebase persistence set to SESSION.");
+
+    } catch (error) {
+        // Handle persistence errors (rare)
+        console.error("Error setting persistence:", error.message);
+        return; 
+    }    
+    
+    if (!email || !password) {
+        alert('Please enter both email and password.');
+        return;
+    }
+
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log('User signed in:', user);
+        alert('Signed in successfully!');        
+        window.location.href = "home.html";
+    } catch (error) {
+        const errorMessage = error.message;
+        console.error('Sign in error:', error.code, errorMessage);
+        alert(`Sign in error: ${errorMessage}`);
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+             alert('Invalid email or password.');
+        } else if (error.code === 'auth/too-many-requests') {
+            alert('Too many failed login attempts. Please try again later.');
+        }
+    }
+};
+
+// Function to handle Sign Out
+const handleSignOut = async () => {
+    try {
+        await signOut(auth);
+        console.log('User signed out.');
+        alert('Signed out successfully!');
+    } catch (error) {
+        console.error('Sign out error:', error);
+        alert(`Sign out error: ${error.message}`);
+    }
+};
+
+
+// --- Function to get single player ---
+async function getSinglePlayer() {
+  const docRef = doc(db, "players", "EteZoTtd40FPI0aYjEKw");
+  try {
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      console.log("Document data:", docSnap.data());
+      alert("Player data: " + JSON.stringify(docSnap.data(), null, 2));
+    } else {
+      console.log("No such document!");
+      alert("No such player document!");
+    }
+  } catch (e) {
+    console.error("Error getting document:", e);
+    alert("Error getting player data: " + e.message);
+  }
+}
+
+// --- Attach event listeners and run UI logic when the DOM is fully loaded ---
+document.addEventListener('DOMContentLoaded', () => {
+    // UI elements MUST be queried here, inside DOMContentLoaded
+    const getSinglePlayerButton = document.getElementById('getSinglePlayerButton');    
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    //const signUpButton = document.getElementById('signup-button');
+    const signInButton = document.getElementById('signin-button');
+    const signOutButton = document.getElementById('signout-button');
+    const userStatusParagraph = document.getElementById('user-status');
+
+
+    // Assign event listeners
+    // if (signUpButton && emailInput && passwordInput) {
+    //     signUpButton.addEventListener('click', () => handleSignUp(emailInput.value, passwordInput.value));
+    // } else {
+    //     console.warn("Element with ID 'signup-button' or associated inputs not found. Sign up functionality may be unavailable.");
+    // }
+
+    if (signInButton && emailInput && passwordInput) {
+        signInButton.addEventListener('click', () => handleSignIn(emailInput.value, passwordInput.value));
+    } 
+    //else {
+      //  console.warn("Element with ID 'signin-button' or associated inputs not found. Sign in functionality may be unavailable.");
+    //}
+
+    if (signOutButton) {
+        signOutButton.addEventListener('click', handleSignOut);
+    } 
+    //else {
+      //  console.warn("Element with ID 'signout-button' not found. Sign out functionality may be unavailable.");
+    //}
+
+    if (getSinglePlayerButton) {
+        getSinglePlayerButton.addEventListener('click', getSinglePlayer);
+    } 
+    //else {
+      //  console.warn("Element with ID 'getSinglePlayerButton' not found.");
+    //}
+
+    // --- Authentication State Listener ---
+    onAuthStateChanged(auth, (user) => {
+        
+        const currentPath = window.location.pathname;
+        const isLoginPage = currentPath.endsWith('index.html') || currentPath === '/';              
+
+        if (user) {
+            // User is signed in
+            if (userStatusParagraph) {
+                userStatusParagraph.textContent = `User is signed in: ${user.email} (UID: ${user.uid})`;                
+            }
+            //if (signUpButton) signUpButton.style.display = 'none';
+            if (signInButton) signInButton.style.display = 'none';
+            if (signOutButton) signOutButton.style.display = 'inline-block';
+            if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+        } else {
+            
+            if (!isLoginPage) {
+                // Redirect signed-out users AWAY from the protected home page
+                console.log("User signed out. Redirecting to index.html");
+                window.location.href = 'index.html'; 
+            }
+            
+            // User is signed out
+            if (userStatusParagraph) {
+                userStatusParagraph.textContent = 'User is signed out.';
+            }
+            //if (signUpButton) signUpButton.style.display = 'inline-block';
+            if (signInButton) signInButton.style.display = 'inline-block';
+            if (signOutButton) signOutButton.style.display = 'none';
+        }
+    });
+
+  
+});
