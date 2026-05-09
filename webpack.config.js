@@ -9,9 +9,9 @@ module.exports = {
   entry: './app.js',
   // The location of the build folder described above
   output: {
-    path: path.resolve(__dirname, '.'),
+    path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
-    clean: false, // Clean the output directory before emit
+    clean: true, // Clean the output directory before emit
   },
   plugins: [
     new Dotenv({
