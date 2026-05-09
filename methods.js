@@ -1,4 +1,0 @@
-function addMessage(){
-            
-    alert("yeah");
-  }
