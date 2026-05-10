@@ -2,20 +2,31 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main, feature/clean-bundle-gitignore ]
+    branches: [ main, "feature/clean-bundle-gitignore" ]
 
+# Updated permissions required for modern Pages deployments
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Added Node setup for stability (highly recommended)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # You can change this to match your local Node version
       
       - name: Install dependencies
         run: npm install
       
+      # Your build step with Firebase secrets intact!
       - name: Build
         run: npm run build
         env:
@@ -26,9 +37,17 @@ jobs:
           FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}      
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      # Initialize GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      # Upload ONLY the dist folder. This replaces peaceiris and exclude_assets entirely.
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          exclude_assets: 'node_modules,.env,.github,app.js,navbar.js,methods.js,login.css,package.json,package-lock.json,webpack.config.js'
+          path: './dist'
+
+      # Deploy the artifact directly to the live site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
