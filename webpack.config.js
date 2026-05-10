@@ -1,5 +1,21 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
+const fs = require('fs'); //Node's built-in File System module
+
+// --- AUTOMATION SCRIPT ---
+// 1. Read all files in the current root directory
+// 2. Filter out only the files that end in .html
+// 3. Create a new HtmlWebpackPlugin for each one
+const htmlPlugins = fs.readdirSync(__dirname)
+  .filter(file => file.endsWith('.html'))
+  .map(file => {
+    return new HtmlWebpackPlugin({
+      template: `./${file}`,
+      filename: file
+    });
+  });
+// -------------------------
 
 module.exports = {
   
@@ -16,7 +32,10 @@ module.exports = {
   plugins: [
     new Dotenv({
       systemvars: true
-    })
+    }),
+    // The "spread" operator (...) takes the array we generated 
+    // above and dumps all the plugins right here automatically!
+    ...htmlPlugins
   ],
   module: {
     rules: [
