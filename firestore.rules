@@ -4,7 +4,20 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ============================================
-    // HELPER FUNCTIONS
+    // POLICY SWITCH
+    // 
+    // Currently: true (chosen by the platform owner).
+    // ============================================
+    function superadminSeesMemberData() {
+      return true;
+    }
+
+    // ============================================
+    // ROLES
+    //  - superadmin, clubadmin  -> authority lives in the TOKEN CLAIMS
+    //                              (set only via the Admin SDK script)
+    //  - player, parent, clubworker -> authority lives in /users/{uid}
+    //                              (written by a clubadmin, validated below)
     // ============================================
 
     function isSignedIn() {
@@ -21,61 +34,102 @@ service cloud.firestore {
         && request.auth.token.clubId == clubId;
     }
 
-    // Any signed-in user whose token clubId matches this club
-    // (covers clubadmin AND regular members, since both get a clubId claim)
-    function belongsToClub(clubId) {
-      return isSignedIn() && request.auth.token.clubId == clubId;
+    function assignableRole(role) {
+      return role in ['player', 'parent', 'clubworker'];
     }
 
+    // --- helpers for roles stored in the /users document ---
+    function myDocPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function hasMyDoc() {
+      return isSignedIn() && exists(myDocPath());
+    }
+
+    function myDoc() {
+      return get(myDocPath()).data;
+    }
+
+    // Member of this club: clubadmin (claim) or a member with a /users doc
     function isClubMember(clubId) {
-      return isSuperadmin() || belongsToClub(clubId);
+      return isClubAdmin(clubId)
+        || (hasMyDoc() && myDoc().clubId == clubId);
+    }
+
+    // Allowed to maintain players/teams: clubadmin or clubworker of this club
+    function canManageClubData(clubId) {
+      return isClubAdmin(clubId)
+        || (hasMyDoc() && myDoc().clubId == clubId && myDoc().role == 'clubworker');
     }
 
     // ============================================
-    // USERS COLLECTION (top-level, doc ID = auth uid)
+    // USERS  (doc ID = auth uid)
     // ============================================
-
     match /users/{userId} {
-      // Any signed-in user can read user profiles (adjust if you want this tighter,
-      // e.g. limit to same-club users only)
-      allow read: if isSignedIn();
 
-      // Users can update their OWN profile fields, but may NOT change their
-      // own role or clubId — those are security-sensitive and only settable
-      // via the Admin SDK script (custom claims), not through this document.
+      // Own profile, your club's profiles (clubadmin), or superadmin.
+      // Queries must filter on clubId, e.g. where('clubId','==',myClubId).
+      allow read: if isSignedIn() && (
+        request.auth.uid == userId
+        || isSuperadmin()
+        || isClubAdmin(resource.data.clubId)
+      );
+
+      // A clubadmin creates members for their own club only, whitelisted roles
+      // only, and only these exact fields. (Create fails if the doc already
+      // exists, so existing profiles can't be overwritten.)
+      allow create: if isClubAdmin(request.resource.data.clubId)
+        && assignableRole(request.resource.data.role)
+        && request.resource.data.keys().hasOnly(['email', 'name', 'surname', 'role', 'clubId']);
+
+      // Superadmin may create any user doc (e.g. a clubadmin's profile)
+      allow create: if isSuperadmin();
+
+      // Members may edit ONLY their own name and surname
       allow update: if isSignedIn()
         && request.auth.uid == userId
-        && request.resource.data.role == resource.data.role
-        && request.resource.data.clubId == resource.data.clubId;
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'surname']);
 
-      // Only superadmin can freely create/overwrite user docs (e.g. role field
-      // kept here for display purposes only — the real authority is the token claim)
-      allow create, delete: if isSuperadmin();
-      allow write: if isSuperadmin();
+      // A clubadmin may edit members of their own club (never other admins),
+      // and may not move them to another club or give them a non-whitelisted role
+      allow update: if isClubAdmin(resource.data.clubId)
+        && assignableRole(resource.data.role)
+        && assignableRole(request.resource.data.role)
+        && request.resource.data.clubId == resource.data.clubId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'surname', 'role']);
+
+      allow update: if isSuperadmin();
+
+      allow delete: if isSuperadmin()
+        || (isClubAdmin(resource.data.clubId) && assignableRole(resource.data.role));
     }
 
     // ============================================
-    // CLUBS COLLECTION (top-level) + subcollections
+    // CLUBS + subcollections
     // ============================================
-
     match /clubs/{clubId} {
-      // Superadmin manages all clubs; clubadmin manages their own club doc
-      allow read: if isClubMember(clubId);
-      allow write: if isSuperadmin() || isClubAdmin(clubId);
+
+      allow read: if isSuperadmin() || isClubMember(clubId);
+
+      allow create, delete: if isSuperadmin();
+      allow update: if isSuperadmin() || isClubAdmin(clubId);
 
       match /players/{playerId} {
-        allow read, write: if isClubMember(clubId);
+        allow read: if isClubMember(clubId)
+          || (isSuperadmin() && superadminSeesMemberData());
+        allow write: if canManageClubData(clubId)
+          || (isSuperadmin() && superadminSeesMemberData());
       }
 
       match /teams/{teamId} {
-        allow read, write: if isClubMember(clubId);
+        allow read: if isClubMember(clubId)
+          || (isSuperadmin() && superadminSeesMemberData());
+        allow write: if canManageClubData(clubId)
+          || (isSuperadmin() && superadminSeesMemberData());
       }
     }
 
-    // ============================================
-    // DEFAULT DENY
-    // Anything not explicitly matched above is blocked.
-    // (Firestore denies by default anyway, this is just explicit for clarity.)
-    // ============================================
+    // Everything not matched above is denied by default.
   }
 }

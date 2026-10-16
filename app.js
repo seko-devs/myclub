@@ -18,6 +18,9 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 //navbar 
 import './navbar.js';
 
+//members page (list + add member for clubadmins)
+import { initMembersPage } from './members.js';
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
@@ -172,6 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
       //  console.warn("Element with ID 'getSinglePlayerButton' not found.");
     //}
 
+    // Members page: does nothing on pages without the members form.
+    initMembersPage();
+    
     // --- Authentication State Listener ---
     onAuthStateChanged(auth, (user) => {
         

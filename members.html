@@ -1,0 +1,65 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Members</title>
+
+  </head>
+
+  <body>
+
+    <nav-bar></nav-bar>
+
+    <main role="main" class="container mt-5 pt-4">
+
+      <div class="starter-template">
+        <h1 class="mb-3">Members</h1>
+
+        <div id="status" role="status"></div>
+
+        <!-- Stays hidden until members.js confirms the user is a clubadmin -->
+        <div id="members-app" hidden>
+
+          <h2 class="h4">Add member</h2>
+          <form id="add-member-form" class="row g-2 align-items-end mb-4">
+            <div class="col-md-3">
+              <label for="name" class="form-label">Name</label>
+              <input id="name" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label for="surname" class="form-label">Surname</label>
+              <input id="surname" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label for="email" class="form-label">Email</label>
+              <input id="email" type="email" class="form-control" required>
+            </div>
+            <div class="col-md-2">
+              <label for="role" class="form-label">Role</label>
+              <select id="role" class="form-select"></select>
+            </div>
+            <div class="col-md-1 d-grid">
+              <button type="submit" class="btn btn-primary">Add</button>
+            </div>
+          </form>
+
+          <h2 class="h4">Club members</h2>
+          <table class="table align-middle">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr>
+            </thead>
+            <tbody id="members-body"></tbody>
+          </table>
+
+        </div>
+      </div>
+
+    </main><!-- /.container -->
+
+  </body>
+</html>
