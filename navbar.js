@@ -10,10 +10,10 @@ class NavBar extends HTMLElement {
             <div class="collapse navbar-collapse" id="navbarsExampleDefault">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="home.html">Home</a>
+                  <a class="nav-link" aria-current="page" href="home.html">Home</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="teams.html">Teams</a>
+                  <a class="nav-link" aria-current="page" href="teams.html">Teams</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="members.html">Members</a>
