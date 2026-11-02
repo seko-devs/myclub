@@ -5,7 +5,11 @@ service cloud.firestore {
 
     // ============================================
     // POLICY SWITCH
-    // 
+    // Should the superadmin be able to read/write players, teams and contacts
+    // of ALL clubs?
+    // false = privacy by default (GDPR-friendly): superadmin manages clubs and
+    //         accounts, but not the personal data of members.
+    // true  = superadmin has full access everywhere.
     // Currently: true (chosen by the platform owner).
     // ============================================
     function superadminSeesMemberData() {
@@ -57,10 +61,22 @@ service cloud.firestore {
         || (hasMyDoc() && myDoc().clubId == clubId);
     }
 
-    // Allowed to maintain players/teams: clubadmin or clubworker of this club
+    // Allowed to maintain players/teams/contacts: clubadmin or clubworker of this club
     function canManageClubData(clubId) {
       return isClubAdmin(clubId)
         || (hasMyDoc() && myDoc().clubId == clubId && myDoc().role == 'clubworker');
+    }
+
+    // Staff of this club, or the superadmin when the policy switch allows it
+    function canSeePersonalData(clubId) {
+      return canManageClubData(clubId)
+        || (isSuperadmin() && superadminSeesMemberData());
+    }
+
+    // Plain-text ids only (letters/digits): stops anyone from building a
+    // different document path out of a value that contains slashes.
+    function isSafeId(value) {
+      return value is string && value.matches('^[A-Za-z0-9]+$');
     }
 
     // ============================================
@@ -106,6 +122,16 @@ service cloud.firestore {
     }
 
     // ============================================
+    // RELATION TYPES  (shared lookup list: father, mother, ...)
+    // Doc ID = stable key (e.g. "father"). Never delete a type that is in use;
+    // set active = false instead.
+    // ============================================
+    match /relationTypes/{typeId} {
+      allow read: if isSignedIn();
+      allow write: if isSuperadmin();
+    }
+
+    // ============================================
     // CLUBS + subcollections
     // ============================================
     match /clubs/{clubId} {
@@ -127,6 +153,64 @@ service cloud.firestore {
           || (isSuperadmin() && superadminSeesMemberData());
         allow write: if canManageClubData(clubId)
           || (isSuperadmin() && superadminSeesMemberData());
+      }
+
+      // ------------------------------------------
+      // CONTACTS: guardians / emergency contacts. A login is optional:
+      // userUid is only set when the person actually has an account.
+      // ------------------------------------------
+      function validContact(d) {
+        return d.keys().hasOnly(['name', 'surname', 'phone', 'phone2', 'email', 'userUid', 'notes'])
+          && d.keys().hasAll(['name', 'surname', 'phone'])
+          && d.name is string && d.name.size() > 0 && d.name.size() <= 100
+          && d.surname is string && d.surname.size() > 0 && d.surname.size() <= 100
+          && d.phone is string && d.phone.size() > 0 && d.phone.size() <= 30
+          && d.get('phone2', '') is string && d.get('phone2', '').size() <= 30
+          && d.get('email', '') is string && d.get('email', '').size() <= 200
+          && d.get('userUid', '') is string
+          && d.get('notes', '') is string && d.get('notes', '').size() <= 1000;
+      }
+
+      match /contacts/{contactId} {
+        // Staff, or the contact's own login (to see their own record)
+        allow read: if canSeePersonalData(clubId)
+          || (isSignedIn() && resource.data.get('userUid', '') == request.auth.uid);
+
+        allow create, update: if canSeePersonalData(clubId) && validContact(request.resource.data);
+
+        allow delete: if canSeePersonalData(clubId);
+      }
+
+      // ------------------------------------------
+      // PLAYER <-> CONTACT links. Doc ID must be "<playerId>_<contactId>", so
+      // the same pair can never be linked twice. The relationship must be an
+      // existing, active entry in /relationTypes.
+      // ------------------------------------------
+      function validPlayerContact(d, linkId) {
+        return d.keys().hasOnly(['playerId', 'contactId', 'relationship',
+                                 'isLegalRepresentative', 'isEmergencyContact', 'emergencyOrder'])
+          && d.keys().hasAll(['playerId', 'contactId', 'relationship',
+                              'isLegalRepresentative', 'isEmergencyContact'])
+          && isSafeId(d.playerId)
+          && isSafeId(d.contactId)
+          && linkId == d.playerId + '_' + d.contactId
+          && d.isLegalRepresentative is bool
+          && d.isEmergencyContact is bool
+          && d.get('emergencyOrder', 1) is int
+          && d.relationship is string
+          && d.relationship.matches('^[A-Za-z]+$')
+          && get(/databases/$(database)/documents/relationTypes/$(d.relationship)).data.active == true
+          && exists(/databases/$(database)/documents/clubs/$(clubId)/players/$(d.playerId))
+          && exists(/databases/$(database)/documents/clubs/$(clubId)/contacts/$(d.contactId));
+      }
+
+      match /playerContacts/{linkId} {
+        allow read: if canSeePersonalData(clubId);
+
+        allow create, update: if canSeePersonalData(clubId)
+          && validPlayerContact(request.resource.data, linkId);
+
+        allow delete: if canSeePersonalData(clubId);
       }
     }
 
