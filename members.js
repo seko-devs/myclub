@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { addClubMember } from './addClubMember.js';
 
-const ROLES = ['player', 'parent', 'clubworker'];
+const ROLES = ['player'];
 
 const $ = (id) => document.getElementById(id);
 
