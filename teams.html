@@ -5,25 +5,61 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
-    <meta name="author" content="">    
+    <meta name="author" content="">
 
-    <title>Teams</title>  
-    
+    <title>Teams</title>
+
   </head>
 
   <body>
 
     <nav-bar></nav-bar>
 
-    <main role="main" class="container">
+    <main role="main" class="container mt-5 pt-4">
 
       <div class="starter-template">
-        <h1>Bootstrap starter template</h1>
-        <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>
+        <h1 class="mb-3">Teams</h1>
+
+        <div id="status" role="status"></div>
+
+        <!-- Stays hidden until teams.js knows which club you belong to -->
+        <div id="teams-app" hidden>
+
+          <!-- Only shown to the clubadmin -->
+          <div id="add-team-section" hidden>
+            <h2 class="h4">Add team</h2>
+            <form id="add-team-form" class="row g-2 align-items-end mb-4">
+              <div class="col-md-5">
+                <label for="team-name" class="form-label">Name</label>
+                <input id="team-name" class="form-control" maxlength="100" required>
+              </div>
+              <div class="col-md-5">
+                <label for="team-category" class="form-label">Category (optional)</label>
+                <input id="team-category" class="form-control" maxlength="50" placeholder="for example U12">
+              </div>
+              <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary">Add</button>
+              </div>
+            </form>
+          </div>
+
+          <h2 class="h4">Club teams</h2>
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th id="status-header" hidden>Status</th>
+                <th id="actions-header" hidden></th>
+              </tr>
+            </thead>
+            <tbody id="teams-body"></tbody>
+          </table>
+
+        </div>
       </div>
 
     </main><!-- /.container -->
 
-    
   </body>
 </html>

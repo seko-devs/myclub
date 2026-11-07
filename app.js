@@ -21,6 +21,12 @@ import './navbar.js';
 //members page (list + add member for clubadmins)
 import { initMembersPage } from './members.js';
 
+// teams page
+import { initTeamsPage } from './teams.js';
+
+// players page
+import { initPlayersPage } from './players.js';
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
@@ -177,6 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Members page: does nothing on pages without the members form.
     initMembersPage();
+
+    // Teams Page
+    initTeamsPage();
+
+    // Players Page
+    initPlayersPage();
     
     // --- Authentication State Listener ---
     onAuthStateChanged(auth, (user) => {
